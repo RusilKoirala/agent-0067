@@ -22,5 +22,6 @@ export const GAME_COFING = {
 
 
     // hitbox 
-    // going to make
+    COLLISION_X_DIST: 40,
+    COLLISION_Y_DIST: 30,
 }
