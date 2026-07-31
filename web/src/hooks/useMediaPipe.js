@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PoseLandmarker, FilesetResolver} from "@mediapipe/tasks-vision"
 
-export function useMediaPipe( ) {
+export function useMediaPipe() {
     const [isModelReady, setIsModelReady] = useState(false);
     const [isRunning, setIsRunning] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
@@ -21,12 +21,24 @@ export function useMediaPipe( ) {
                     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
                 )
 
+                // get the land marked google's trained dataa 
                 landmarkerRef.current = await PoseLandmarker.createFromOptions(vision, {
-                    baseOptions:
-                })
+                    baseOptions: {
+                        modelAssetPath: "/pose_landmarker_heavy.task",
+                        delegate: "GPU"
+                    },
+                    runningMode: "VIDEO",
+                    numPoses: 1
+                });
+                setIsModelReady(true)
             } catch (error) {
-                
+                console.log("MediaPipe initialization failed: ", error)
+
             }
         }
-    })
+        init()
+    }, [])
+
+
+  
 }
