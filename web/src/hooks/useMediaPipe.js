@@ -39,6 +39,13 @@ export function useMediaPipe() {
         init()
     }, [])
 
+    // start the cameraa
+    const startCamera = () => {
+        setIsRunning(true);
+        setErrorMsg("Camera access denied")
+        setIsRunning(false)
+    }
 
+    return { videoRef, landmarkerRef, isModelReady, isRunning, errorMsg, startCamera}
   
 }
