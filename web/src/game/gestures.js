@@ -16,4 +16,13 @@ export function parsePoseControls(landmarks, refs)  {
     const rightHip = landmarks[24];
 
 
+    /* 
+    calibrate for different points different 
+    one is for head left or right gesture
+    one is for 6-7 gesture
+    */
+
+
+
+    
 }
