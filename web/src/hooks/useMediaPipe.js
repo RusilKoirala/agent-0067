@@ -30,9 +30,11 @@ export function useMediaPipe() {
                     runningMode: "VIDEO",
                     numPoses: 1
                 });
-                setIsModelReady(true)
+                setIsModelReady(true);
+                console.log("mediapipe model loaded successfully");
             } catch (error) {
-                console.log("MediaPipe initialization failed: ", error)
+                console.error("MediaPipe initialization failed: ", error);
+                setErrorMsg("failed to load pose detection model");
 
             }
         }
@@ -40,10 +42,43 @@ export function useMediaPipe() {
     }, [])
 
     // start the cameraa
-    const startCamera = () => {
-        setIsRunning(true);
-        setErrorMsg("Camera access denied")
-        setIsRunning(false)
+    const startCamera = async () => {
+      
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: 1280, 
+                    height: 720 
+                } 
+            });
+            
+         
+
+            setIsRunning(true);
+            setErrorMsg("");
+            
+
+            setTimeout(() => {
+                if (videoRef.current) {
+              
+                    videoRef.current.srcObject = stream;
+                    
+  
+                    videoRef.current.onloadeddata = () => {
+         
+                    };
+                    
+                    videoRef.current.play();
+                } else {
+                    console.error("video ref is still null after timeout!");
+                }
+            }, 100);
+            
+        } catch (error) {
+            console.error("camera access failed:", error);
+            setErrorMsg("Camera access denied. Please allow camera permissions.");
+            setIsRunning(false);
+        }
     }
 
     return { videoRef, landmarkerRef, isModelReady, isRunning, errorMsg, startCamera}
