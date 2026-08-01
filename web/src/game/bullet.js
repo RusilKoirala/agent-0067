@@ -4,7 +4,7 @@ export function updateAndDrawBullets(ctx, bulletsRef) {
   bulletsRef.current = bulletsRef.current.filter((bullet) => {
     bullet.y -= GAME_CONFIG.BULLET_SPEED;
 
-    // Laser Beam Core
+    // laser beam code
     ctx.fillStyle = '#ffff00';
     ctx.fillRect(bullet.x - 3, bullet.y, 6, 12);
     ctx.fillStyle = '#ffffff';
