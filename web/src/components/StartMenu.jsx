@@ -7,10 +7,13 @@ export default function StartMenu({ isModelReady, isRunning, errorMsg, onStartCa
       <div className="instructions">
         <p><strong>SHOOT:</strong> Six-Seven jiggle (alternate hands high above chest)</p>
         <p><strong>MOVE:</strong> Tilt head left or right</p>
-        <p><strong>DEPTH:</strong> Lean forward or backward</p>
       </div>
 
-      <button onClick={onStartCamera} disabled={!isModelReady || isRunning} className="start-game-btn">
+      <button 
+        onClick={onStartCamera} 
+        disabled={!isModelReady || isRunning} 
+        className="start-game-btn"
+      >
         {!isModelReady ? 'Loading Model...' : isRunning ? 'Camera Ready' : 'Start Camera'}
       </button>
 

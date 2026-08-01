@@ -11,7 +11,6 @@ export default function GameCanvas({
   setScore,
   setTimeLeft,
   playerXRef,
-  playerDepthRef,
   bulletsRef,
   triggerShootRef,
 }) {
@@ -77,7 +76,7 @@ export default function GameCanvas({
       updateAndDrawBullets(ctx, bulletsRef);
       spawnEnemyIfNeeded(enemiesRef, lastEnemySpawnRef);
       updateAndDrawEnemies(ctx, enemiesRef, bulletsRef, scoreRef, setScore);
-      drawPlayer(ctx, playerXRef.current, playerDepthRef.current, GAME_CONFIG.CANVAS_HEIGHT);
+      drawPlayer(ctx, playerXRef.current, GAME_CONFIG.CANVAS_HEIGHT);
 
       gameLoopRef.current = requestAnimationFrame(loop);
     };
@@ -95,7 +94,7 @@ export default function GameCanvas({
     ref={canvasRef}
     width={GAME_CONFIG.CANVAS_WIDTH}
     height={GAME_CONFIG.CANVAS_HEIGHT}
-    classname="game-canvas"
+    className="game-canvas"
     />
   )
 }
