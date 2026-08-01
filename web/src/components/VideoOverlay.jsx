@@ -73,6 +73,28 @@ export default function VideoOverlay({
           const leftWrist = landmarks[15];
           const rightWrist = landmarks[16];
 
+          // Draw centerline for calibration
+          ctx.strokeStyle = '#ffff00';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(w / 2, 0);
+          ctx.lineTo(w / 2, h);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Draw head center calibration line if available
+          if (headCenterXRef.current !== null) {
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(headCenterXRef.current * w, 0);
+            ctx.lineTo(headCenterXRef.current * w, h);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+
           // Draw landmarks
           ctx.fillStyle = '#00ff00';
           ctx.beginPath();

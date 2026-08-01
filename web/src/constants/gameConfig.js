@@ -18,7 +18,7 @@ export const GAME_CONFIG = {
 
     // speed 
     PLAYER_SPEED: 8,
-    PLAYER_MOVE_STEP: 8,
+    PLAYER_MOVE_STEP: 5,  // reduced for smoother movement
     BULLET_SPEED: 10,
 
     // enemy spawning
