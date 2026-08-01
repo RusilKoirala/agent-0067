@@ -23,13 +23,44 @@ export default function App() {
   const playerXRef = useRef(400);
   const playerDepthRef = useRef(0.5);
 
-
   const handleStartGame=() => {
 
     setScore(0);
+    settimeout(60);
     setGameOver(false);
     setGameStarted(true);
   };
 
-  
+  return ( 
+
+    <div className="fullscreen-game">
+
+      <GameCanvas gameStarted={gameStarted}
+                  setGameStarted={setGameStarted}
+                  setGameOver={setGameOver}
+                  setScore={setScore}
+                  setTimeLeft={setTimeLeft}
+                  playerXRef={playerXRef}
+                  playerDepthRef={playerDepthRef}
+
+    />    
+
+    <HUD score={score} timeLeft={timeLeft} gameStarted={gameStarted} />
+
+    {!gameStarted && !gameOver && (
+
+      <StartMenu isModelReady={isModelReady}
+                 isRunning={isRunning}
+                 errorMsg={errorMsg}
+                 onStartCamera={startCamera}
+                 onStartGame={handleStartGame}
+
+                 />
+
+    )}
+      
+    </div>
+  )
+
+
 }
