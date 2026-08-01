@@ -15,6 +15,7 @@ export default function VideoOverlay({
 
   const headCenterXRef = useRef(null);
   const currentStateRef = useRef('NEUTRAL');
+  const lastShootTimeRef = useRef(null); // NEW: for debouncing
 
   useEffect(() => {
     console.log('🎬 VideoOverlay mounted, starting processFrame loop');
@@ -56,9 +57,17 @@ export default function VideoOverlay({
         if (results.landmarks && results.landmarks.length > 0) {
           const landmarks = results.landmarks[0];
 
-          const { headTilt, bothHandsActive, shouldShoot } = parsePoseControls(
+          const { 
+            headTilt, 
+            bothHandsActive, 
+            shouldShoot,
+            gestureConfidence,
+            leftHandActive,
+            rightHandActive,
+            currentGestureState
+          } = parsePoseControls(
             landmarks,
-            { headCenterXRef, playerXRef, currentStateRef }
+            { headCenterXRef, playerXRef, currentStateRef, lastShootTimeRef }
           );
 
           if (shouldShoot) {
@@ -72,6 +81,8 @@ export default function VideoOverlay({
           const nose = landmarks[0];
           const leftWrist = landmarks[15];
           const rightWrist = landmarks[16];
+          const leftShoulder = landmarks[11];
+          const rightShoulder = landmarks[12];
 
           // Draw centerline for calibration
           ctx.strokeStyle = '#ffff00';
@@ -95,29 +106,75 @@ export default function VideoOverlay({
             ctx.setLineDash([]);
           }
 
-          // Draw landmarks
+          // Draw landmarks with better colors
           ctx.fillStyle = '#00ff00';
           ctx.beginPath();
           ctx.arc(nose.x * w, nose.y * h, 8, 0, 2 * Math.PI);
           ctx.fill();
 
-          ctx.fillStyle = '#00ffff';
+          // Left wrist - color changes based on if it's active
+          ctx.fillStyle = leftHandActive ? '#00ffff' : '#666666';
           ctx.beginPath();
-          ctx.arc(leftWrist.x * w, leftWrist.y * h, 8, 0, 2 * Math.PI);
+          ctx.arc(leftWrist.x * w, leftWrist.y * h, 10, 0, 2 * Math.PI);
           ctx.fill();
 
-          ctx.fillStyle = '#ff00ff';
+          // Right wrist - color changes based on if it's active  
+          ctx.fillStyle = rightHandActive ? '#ff00ff' : '#666666';
           ctx.beginPath();
-          ctx.arc(rightWrist.x * w, rightWrist.y * h, 8, 0, 2 * Math.PI);
+          ctx.arc(rightWrist.x * w, rightWrist.y * h, 10, 0, 2 * Math.PI);
           ctx.fill();
 
-          // Draw status text
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '14px monospace';
+          // Draw line between wrists when both hands are up
+          if (bothHandsActive) {
+            ctx.strokeStyle = currentGestureState === 'LEFT_HIGH' ? '#00ffff' : 
+                            currentGestureState === 'RIGHT_HIGH' ? '#ff00ff' : '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(leftWrist.x * w, leftWrist.y * h);
+            ctx.lineTo(rightWrist.x * w, rightWrist.y * h);
+            ctx.stroke();
+          }
+
+          // Draw shoulder reference line
+          ctx.strokeStyle = '#888888';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 2]);
+          ctx.beginPath();
+          ctx.moveTo(leftShoulder.x * w, leftShoulder.y * h);
+          ctx.lineTo(rightShoulder.x * w, rightShoulder.y * h);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Draw status text with better formatting
+          ctx.font = 'bold 16px monospace';
           
           if (bothHandsActive) {
+            // Background box for text
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(5, 5, 310, 80);
+            
             ctx.fillStyle = '#ffff00';
-            ctx.fillText('HANDS UP: ' + currentStateRef.current, 10, 30);
+            ctx.fillText('✋ HANDS UP ✋', 10, 25);
+            
+            ctx.font = '14px monospace';
+            ctx.fillStyle = currentGestureState === 'LEFT_HIGH' ? '#00ffff' : 
+                          currentGestureState === 'RIGHT_HIGH' ? '#ff00ff' : '#ffffff';
+            ctx.fillText('State: ' + currentGestureState, 10, 50);
+            
+            // Confidence bar
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('Confidence:', 10, 70);
+            ctx.fillStyle = gestureConfidence > 0.7 ? '#00ff00' : 
+                          gestureConfidence > 0.4 ? '#ffff00' : '#ff0000';
+            ctx.fillRect(100, 58, gestureConfidence * 200, 15);
+            ctx.strokeStyle = '#ffffff';
+            ctx.strokeRect(100, 58, 200, 15);
+          } else {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(5, 5, 250, 35);
+            
+            ctx.fillStyle = '#888888';
+            ctx.fillText('Raise both hands up!', 10, 25);
           }
         }
       }

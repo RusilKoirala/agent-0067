@@ -14,7 +14,7 @@ export const GAME_CONFIG = {
 
     // control things
     TILT_THRESHOLD: 0.03,  // like if i tilt my head until when dont move right for tose dummies  who is reading my shit code 
-    GESTURE_SWITCH_THRESHOLD: 0.05, // similar for 6-7 i called it gesture
+    GESTURE_SWITCH_THRESHOLD: 0.15, // normalized threshold for 6-7 gesture (increased for better accuracy)
 
     // speed 
     PLAYER_SPEED: 8,
