@@ -1,17 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { useMediaPipe } from './hooke/useMediaPipe';
+import { useMediaPipe } from './hooks/useMediaPipe';
 import GameCanvas from './components/GameCanvas';
-import VideoOverlay from './components/VideoOverlay';
-
-import HUD from './components/HUD';
-import StartMenu from './components/Menus/StartMenu';
-import GameOverMenu from './components/Menue/GameOverMenu';
 import './App.css'
 
 
 export default function App() { 
 
-  const { videoRef, landmarkerRef, isModelReady, isRunning, errorMsg, startCamera } = useMediaPipe;
+  const { videoRef, landmarkerRef, isModelReady, isRunning, errorMsg, startCamera } = useMediaPipe();
 
   const [ gameStarted, setGameStarted ] = useState(false);
   const [ gameOver, setGameOver ] = useState(false);
@@ -27,6 +22,7 @@ export default function App() {
   const handleStartGame=() => {
 
     setScore(0);
+    setTimeLeft(60);
     setGameOver(false);
     setGameStarted(true);
   };
