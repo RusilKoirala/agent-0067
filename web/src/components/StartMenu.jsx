@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function StartMenu({ isModelReady, isRunning, errorMsg, onStartCamera, onStartGame }) {
   return (
     <div className="start-overlay">

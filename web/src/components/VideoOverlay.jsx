@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { parsePoseControls } from '../game/gestures';
 
 export default function VideoOverlay({
@@ -56,7 +56,7 @@ export default function VideoOverlay({
         if (results.landmarks && results.landmarks.length > 0) {
           const landmarks = results.landmarks[0];
 
-          const { headTilt, bothHandsActive, shouldShoot } = parsePoseControls(
+          const { bothHandsActive, shouldShoot } = parsePoseControls(
             landmarks,
             { headCenterXRef, playerXRef, currentStateRef }
           );
