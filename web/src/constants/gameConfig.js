@@ -3,7 +3,7 @@
 /*
 guys pls dont change the following values
 */
-export const GAME_COFING = {
+export const GAME_CONFIG = {
 
     // layout
     CANVAS_WIDTH:  800,
@@ -18,8 +18,11 @@ export const GAME_COFING = {
 
     // speed 
     PLAYER_SPEED: 8,
+    PLAYER_MOVE_STEP: 8,
     BULLET_SPEED: 10,
 
+    // enemy spawning
+    ENEMY_SPAWN_INTERVAL_MS: 1000, // spawn enemy every 1 second
 
     // hitbox 
     COLLISION_X_DIST: 40,
