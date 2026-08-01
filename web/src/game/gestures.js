@@ -3,7 +3,7 @@
 import { GAME_CONFIG } from "../constants/gameConfig.js"
 
 
-// :D the wonderful 6-7 poses
+// 6-7 poses
 
 export function parsePoseControls(landmarks, refs)  {
     const { headCenterXRef, headCenterZRef, playerXRef, playerDepthRef, currentStateRef} = refs;

@@ -9,7 +9,7 @@ export function updateAndDrawEnemies(
 ) {
   const now = Date.now();
 
-  // Update & Draw
+  // update and draw
   enemiesRef.current = enemiesRef.current.filter((enemy) => {
     enemy.y += enemy.speed;
 
@@ -31,7 +31,7 @@ export function updateAndDrawEnemies(
     });
 
     if (hit) {
-      // Explosion FX
+      //exploision fxx
       ctx.fillStyle = '#ffff00';
       ctx.fillRect(enemy.x - 5, enemy.y - 5, 40, 40);
       ctx.fillStyle = '#ff8800';
@@ -39,12 +39,12 @@ export function updateAndDrawEnemies(
       return false;
     }
 
-    // Render Alien Sprite
+    //render alien
     ctx.fillStyle = '#ff0000';
     ctx.fillRect(enemy.x + 10, enemy.y, 10, 10); // Head
-    ctx.fillRect(enemy.x + 5, enemy.y + 10, 20, 15); // Body
+    ctx.fillRect(enemy.x + 5, enemy.y + 10, 20, 15); // bidy
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(enemy.x + 12, enemy.y + 3, 2, 2); // Eyes
+    ctx.fillRect(enemy.x + 12, enemy.y + 3, 2, 2); // eyes
     ctx.fillRect(enemy.x + 16, enemy.y + 3, 2, 2);
 
     return enemy.y < GAME_CONFIG.CANVAS_HEIGHT;
