@@ -20,6 +20,7 @@ export default function App() {
   const [connected, setConnected] = useState(false);
   const [room, setRoom] = useState(null);
   const [roomError, setRoomError] = useState('');
+  const [gameMode, setGameMode] = useState(''); 
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
@@ -71,37 +72,74 @@ export default function App() {
     socketRef.current?.emit('score:hit');
   }, []);
 
+  // start a local single player game 
+  const startSinglePlayerGame = useCallback(() => {
+    setScore(0);
+    setTimeLeft(60);
+    setGameOver(false);
+    setGameStarted(true);
+  }, []);
+
+  // play again -> reset everything and go back to mode select
+  const handlePlayAgain = useCallback(() => {
+    setGameStarted(false);
+    setGameOver(false);
+    setScore(0);
+    setTimeLeft(60);
+    setRoom(null);
+    setGameMode('');
+  }, []);
+
   return (
-    <div className="fullscreen-game">
-      <GameCanvas
-        gameStarted={gameStarted}
-        setGameStarted={setGameStarted}
-        setGameOver={setGameOver}
-        setScore={setScore}
-        setTimeLeft={setTimeLeft}
-        playerXRef={playerXRef}
-        bulletsRef={bulletsRef}
-        triggerShootRef={triggerShootRef}
-        onEnemyHit={handleEnemyHit}
-      />
-
-      <HUD score={score} timeLeft={timeLeft} gameStarted={gameStarted} leaderboard={room?.players || []} />
-
-      {!gameStarted && !gameOver && (
-        <RoomLobby
-          connected={connected}
-          room={room}
-          error={roomError || errorMsg}
-          isModelReady={isModelReady}
-          isCameraReady={isRunning}
-          onStartCamera={startCamera}
-          onCreateRoom={(username) => emitWithResponse('room:create', { username })}
-          onJoinRoom={(roomId, username) => emitWithResponse('room:join', { roomId, username })}
-          onStartMatch={() => emitWithResponse('match:start')}
+    <div className="app-container">
+      <div className="fullscreen-game">
+        <GameCanvas
+          gameStarted={gameStarted}
+          setGameStarted={setGameStarted}
+          setGameOver={setGameOver}
+          setScore={setScore}
+          setTimeLeft={setTimeLeft}
+          playerXRef={playerXRef}
+          bulletsRef={bulletsRef}
+          triggerShootRef={triggerShootRef}
+          onEnemyHit={handleEnemyHit}
         />
-      )}
 
-      {gameOver && <GameOverMenu finalScore={score} />}
+        <HUD
+          score={score}
+          timeLeft={timeLeft}
+          gameStarted={gameStarted}
+          leaderboard={room?.players || []}
+          showLeaderboard={gameMode === 'multi'}
+        />
+
+        {!gameStarted && !gameOver && (
+          <RoomLobby
+            connected={connected}
+            room={room}
+            error={roomError || errorMsg}
+            isModelReady={isModelReady}
+            isCameraReady={isRunning}
+            gameMode={gameMode}
+            setGameMode={setGameMode}
+            onStartCamera={startCamera}
+            onCreateRoom={(username) => emitWithResponse('room:create', { username })}
+            onJoinRoom={(roomId, username) => emitWithResponse('room:join', { roomId, username })}
+            onStartMatch={() => emitWithResponse('match:start')}
+            onStartSinglePlayer={startSinglePlayerGame}
+          />
+        )}
+
+        {gameOver && (
+          <GameOverMenu
+            finalScore={score}
+            leaderboard={room?.players || []}
+            roomId={room?.roomId}
+            showLeaderboard={gameMode === 'multi'}
+            onPlayAgain={handlePlayAgain}
+          />
+        )}
+      </div>
 
       {isRunning && (
         <VideoOverlay
