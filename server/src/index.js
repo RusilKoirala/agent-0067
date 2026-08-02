@@ -27,13 +27,41 @@ try {
 const httpServer = app.listen(port, () => {
   console.log(`multiplayer server listening on ${port}`);
 });
+
 io = new Server(httpServer, {
   cors: { origin: clientOrigin, methods: ['GET', 'POST'] },
 });
 
+// cors for REST endpoints
+app.use(cors({ origin: clientOrigin }));
+
+// health
 app.get('/health', async (_request, response) => {
   const redisReady = redis.isReady;
   response.status(redisReady ? 200 : 503).json({ ok: redisReady });
+});
+
+// leaderboard endpoint
+app.get('/leaderboard/:roomId', async (request, response) => {
+  const { roomId } = request.params;
+  const validated = validateRoomId(roomId);
+  
+  if (validated.error) {
+    return response.status(400).json({ ok: false, error: validated.error });
+  }
+
+  const exists = await redis.exists(roomKey(validated.roomId));
+  if (!exists) {
+    return response.status(404).json({ ok: false, error: 'room not found' });
+  }
+
+  try {
+    const snapshot = await roomSnapshot(validated.roomId);
+    response.json({ ok: true, room: snapshot });
+  } catch (error) {
+    console.error('leaderboard fetch error:', error);
+    response.status(500).json({ ok: false, error: 'could not fetch leaderboard' });
+  }
 });
 
 const roomKey = (roomId) => `room:${roomId}`;
@@ -41,6 +69,8 @@ const playersKey = (roomId) => `room:${roomId}:players`;
 const usernameKey = (roomId) => `room:${roomId}:usernames`;
 const playerKey = (roomId, socketId) => `room:${roomId}:player:${socketId}`;
 
+
+// validate username
 function validateUsername(value) {
   const username = typeof value === 'string' ? value.trim() : '';
   if (!/^[a-zA-Z0-9_-]{3,20}$/.test(username)) {
@@ -49,12 +79,14 @@ function validateUsername(value) {
   return { username };
 }
 
+// validate room id
 function validateRoomId(value) {
   const roomId = typeof value === 'string' ? value.trim().toUpperCase() : '';
   if (!/^[A-Z0-9]{6}$/.test(roomId)) return { error: 'room id is invalid' };
   return { roomId };
 }
 
+// create unique room id
 async function createRoomId() {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const roomId = crypto.randomBytes(4).toString('base64url').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
@@ -63,15 +95,20 @@ async function createRoomId() {
   throw new Error('could not create a room id');
 }
 
+
+// create room snapshot
 async function roomSnapshot(roomId) {
   const [room, socketIds] = await Promise.all([
     redis.hGetAll(roomKey(roomId)),
     redis.sMembers(playersKey(roomId)),
   ]);
+
+
   const players = await Promise.all(socketIds.map(async (socketId) => {
     const player = await redis.hGetAll(playerKey(roomId, socketId));
     return { username: player.username, score: Number(player.score || 0), connected: player.connected === 'true' };
   }));
+
   return {
     roomId,
     status: room.status,
@@ -85,9 +122,11 @@ async function broadcastRoom(roomId) {
   io.to(roomId).emit('room:updated', await roomSnapshot(roomId));
 }
 
+
 function respond(acknowledge, payload) {
   if (typeof acknowledge === 'function') acknowledge(payload);
 }
+
 
 io.on('connection', (socket) => {
   socket.on('room:create', async ({ username }, acknowledge) => {
@@ -104,6 +143,7 @@ io.on('connection', (socket) => {
       console.error(error);
     }
   });
+
 
   socket.on('room:join', async ({ roomId: rawRoomId, username }, acknowledge) => {
     const roomValidated = validateRoomId(rawRoomId);
@@ -122,6 +162,7 @@ io.on('connection', (socket) => {
     await joinRoom(socket, roomValidated.roomId, usernameValidated.username);
     respond(acknowledge, { ok: true, room: await roomSnapshot(roomValidated.roomId) });
   });
+
 
   socket.on('match:start', async (acknowledge) => {
     const { roomId } = socket.data;
@@ -149,6 +190,7 @@ io.on('connection', (socket) => {
     respond(acknowledge, { ok: true, startAt });
   });
 
+
   socket.on('score:hit', async (acknowledge) => {
     const { roomId } = socket.data;
     if (!roomId || await redis.hGet(roomKey(roomId), 'status') !== 'playing') return;
@@ -164,6 +206,7 @@ io.on('connection', (socket) => {
     await broadcastRoom(roomId);
     respond(acknowledge, { ok: true });
   });
+
 
   socket.on('disconnect', async () => {
     const { roomId, username } = socket.data;
@@ -182,6 +225,8 @@ io.on('connection', (socket) => {
   });
 });
 
+
+// join the room 
 async function joinRoom(socket, roomId, username) {
   const playerCount = await redis.sCard(playersKey(roomId));
   socket.join(roomId);
