@@ -207,6 +207,26 @@ io.on('connection', (socket) => {
     respond(acknowledge, { ok: true });
   });
 
+  socket.on('score:damage', async (acknowledge) => {
+    const { roomId } = socket.data;
+    if (!roomId || await redis.hGet(roomKey(roomId), 'status') !== 'playing') return;
+    const key = playerKey(roomId, socket.id);
+    if (!(await redis.exists(key))) return;
+    const now = Date.now();
+    const lastDamageAt = Number(await redis.hGet(key, 'lastDamageAt') || 0);
+    if (now - lastDamageAt < 200) return;
+
+    const currentScore = Number(await redis.hGet(key, 'score') || 0);
+    const nextScore = Math.max(0, currentScore - 5);
+
+    await redis.multi()
+      .hSet(key, 'lastDamageAt', String(now))
+      .hSet(key, 'score', String(nextScore))
+      .exec();
+    await broadcastRoom(roomId);
+    respond(acknowledge, { ok: true });
+  });
+
 
   socket.on('disconnect', async () => {
     const { roomId, username } = socket.data;

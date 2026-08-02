@@ -15,6 +15,7 @@ export default function GameCanvas({
   bulletsRef,
   triggerShootRef,
   onEnemyHit,
+  onPlayerDamage,
 }) {
 
   // declaring basic references
@@ -85,7 +86,7 @@ export default function GameCanvas({
       // update the game entities
       updateAndDrawBullets(ctx, bulletsRef);
       spawnEnemyIfNeeded(enemiesRef, lastEnemySpawnRef);
-      updateAndDrawEnemies(ctx, enemiesRef, bulletsRef, scoreRef, setScore, onEnemyHit, explosionsRef, playerXRef);
+      updateAndDrawEnemies(ctx, enemiesRef, bulletsRef, scoreRef, setScore, onEnemyHit, onPlayerDamage, explosionsRef, playerXRef);
       updateAndDrawExplosions(ctx, explosionsRef);
       drawPlayer(ctx, playerXRef.current, GAME_CONFIG.CANVAS_HEIGHT);
 

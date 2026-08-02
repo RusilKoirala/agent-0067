@@ -72,6 +72,10 @@ export default function App() {
     socketRef.current?.emit('score:hit');
   }, []);
 
+  const handlePlayerDamage = useCallback(() => {
+    socketRef.current?.emit('score:damage');
+  }, []);
+
   // start a local single player game 
   const startSinglePlayerGame = useCallback(() => {
     setScore(0);
@@ -103,6 +107,7 @@ export default function App() {
           bulletsRef={bulletsRef}
           triggerShootRef={triggerShootRef}
           onEnemyHit={handleEnemyHit}
+          onPlayerDamage={handlePlayerDamage}
         />
 
         <HUD
