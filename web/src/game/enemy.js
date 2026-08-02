@@ -18,6 +18,7 @@ export function updateAndDrawEnemies(
 
   // update and draw enemies
   enemiesRef.current = enemiesRef.current.filter((enemy) => {
+    const prevY = enemy.y;
     enemy.y += enemy.speed * frameScale;
 
     let hit = false;
@@ -33,44 +34,43 @@ export function updateAndDrawEnemies(
         scoreRef.current += 10;
         onScoreChange(scoreRef.current);
         onEnemyHit?.();
-        
+
         // play phew phew sound when enemy gets hit
         soundManager.playFire();
-        
+
         return false;
       }
       return true;
     });
 
     if (hit) {
-    
       explosionsRef.current.push({
         x: enemy.x,
         y: enemy.y,
         frame: 0,
-        type: 'hit', 
+        type: 'hit',
       });
       return false;
     }
 
-    
+    // check collision with player (swept to prevent tunneling)
     const playerY = GAME_CONFIG.CANVAS_HEIGHT - 80;
     const playerX = playerXRef.current;
-    
-  
+
     const xDistance = Math.abs((enemy.x + 15) - playerX);
     const yDistance = Math.abs((enemy.y + 12.5) - playerY);
-    
-    if (xDistance < 30 && yDistance < 40 && enemy.y >= playerY - 40) {
- 
+
+    // use swept check: did enemy cross player zone this frame?
+    const crossedPlayerZone = prevY <= playerY && enemy.y >= playerY - 40;
+
+    if (xDistance < 40 && (yDistance < 40 || crossedPlayerZone)) {
       explosionsRef.current.push({
         x: enemy.x,
         y: enemy.y,
         frame: 0,
-        type: 'damage', 
+        type: 'damage',
       });
-      
- 
+
       const now = performance.now();
       if (now - (damageCooldownRef.current || 0) > 250) {
         damageCooldownRef.current = now;
@@ -80,24 +80,23 @@ export function updateAndDrawEnemies(
         scoreRef.current = Math.max(0, scoreRef.current - 5);
         onScoreChange(scoreRef.current);
       }
-      
-      return false; 
+
+      return false;
     }
 
-
     if (enemy.y >= GAME_CONFIG.CANVAS_HEIGHT) {
-      return false; 
+      return false;
     }
 
     // render the ENEMYY
     ctx.fillStyle = '#ff0000';
-    ctx.fillRect(enemy.x + 10, enemy.y, 10, 10); 
-    ctx.fillRect(enemy.x + 5, enemy.y + 10, 20, 15); 
+    ctx.fillRect(enemy.x + 10, enemy.y, 10, 10);
+    ctx.fillRect(enemy.x + 5, enemy.y + 10, 20, 15);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(enemy.x + 12, enemy.y + 3, 2, 2);
     ctx.fillRect(enemy.x + 16, enemy.y + 3, 2, 2);
 
-    return true; 
+    return true;
   });
 }
 
@@ -114,7 +113,6 @@ export function updateAndDrawExplosions(ctx, explosionsRef) {
     const alpha = 1 - (frame / maxFrames);
 
     if (explosion.type === 'hit') {
-     
       ctx.globalAlpha = alpha;
       ctx.fillStyle = '#ffff00';
       ctx.fillRect(explosion.x - 5, explosion.y - 5, size + 10, size + 10);
@@ -124,7 +122,6 @@ export function updateAndDrawExplosions(ctx, explosionsRef) {
       ctx.fillRect(explosion.x + 5, explosion.y + 5, size - 10, size - 10);
       ctx.globalAlpha = 1;
     } else if (explosion.type === 'damage') {
-
       ctx.globalAlpha = alpha;
       ctx.fillStyle = '#ff0000';
       ctx.fillRect(explosion.x - 5, explosion.y - 5, size + 10, size + 10);
@@ -136,7 +133,7 @@ export function updateAndDrawExplosions(ctx, explosionsRef) {
     }
 
     explosion.frame++;
-    return true; 
+    return true;
   });
 }
 

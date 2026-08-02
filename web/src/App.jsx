@@ -76,12 +76,10 @@ export default function App() {
   }, [setSnapshot]);
 
   const handleEnemyHit = useCallback(() => {
-    setScore((previous) => previous + 10);
     socketRef.current?.emit('score:hit');
   }, []);
 
   const handlePlayerDamage = useCallback(() => {
-    setScore((previous) => Math.max(0, previous - 5));
     socketRef.current?.emit('score:damage');
   }, []);
 
