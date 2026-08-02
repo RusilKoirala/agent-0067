@@ -25,9 +25,16 @@ export default function App() {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
+  const playerNameRef = useRef('');
 
   const setSnapshot = useCallback((snapshot) => {
-    setRoom({ ...snapshot, selfSocketId: socketRef.current?.id });
+    const nextRoom = { ...snapshot, selfSocketId: socketRef.current?.id };
+    setRoom(nextRoom);
+
+    const selfScore = nextRoom.players?.find((player) => player.username === playerNameRef.current)?.score;
+    if (typeof selfScore === 'number') {
+      setScore(selfScore);
+    }
   }, []);
 
   const scheduleMatchStart = useCallback(({ startAt }) => {
@@ -76,8 +83,13 @@ export default function App() {
     socketRef.current?.emit('score:damage');
   }, []);
 
+  const updatePlayerName = useCallback((username) => {
+    playerNameRef.current = username;
+  }, []);
+
   // start a local single player game 
   const startSinglePlayerGame = useCallback(() => {
+    playerNameRef.current = '';
     setScore(0);
     setTimeLeft(60);
     setGameOver(false);
@@ -86,6 +98,7 @@ export default function App() {
 
   // play again -> reset everything and go back to mode select
   const handlePlayAgain = useCallback(() => {
+    playerNameRef.current = '';
     setGameStarted(false);
     setGameOver(false);
     setScore(0);
@@ -93,6 +106,8 @@ export default function App() {
     setRoom(null);
     setGameMode('');
   }, []);
+
+  const currentPlayerScore = room?.players?.find((player) => player.username === playerNameRef.current)?.score ?? score;
 
   return (
     <div className="app-container">
@@ -111,7 +126,7 @@ export default function App() {
         />
 
         <HUD
-          score={score}
+          score={currentPlayerScore}
           timeLeft={timeLeft}
           gameStarted={gameStarted}
           leaderboard={room?.players || []}
@@ -128,8 +143,14 @@ export default function App() {
             gameMode={gameMode}
             setGameMode={setGameMode}
             onStartCamera={startCamera}
-            onCreateRoom={(username) => emitWithResponse('room:create', { username })}
-            onJoinRoom={(roomId, username) => emitWithResponse('room:join', { roomId, username })}
+            onCreateRoom={(username) => {
+              updatePlayerName(username);
+              emitWithResponse('room:create', { username });
+            }}
+            onJoinRoom={(roomId, username) => {
+              updatePlayerName(username);
+              emitWithResponse('room:join', { roomId, username });
+            }}
             onStartMatch={() => emitWithResponse('match:start')}
             onStartSinglePlayer={startSinglePlayerGame}
           />
@@ -137,7 +158,7 @@ export default function App() {
 
         {gameOver && (
           <GameOverMenu
-            finalScore={score}
+            finalScore={currentPlayerScore}
             leaderboard={room?.players || []}
             roomId={room?.roomId}
             showLeaderboard={gameMode === 'multi'}
