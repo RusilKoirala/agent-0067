@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+const serverUrl = 'https://agent.rusil.me';
 
 export default function LiveLeaderboard() {
   const { roomCode } = useParams();
