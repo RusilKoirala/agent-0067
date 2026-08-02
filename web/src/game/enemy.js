@@ -11,12 +11,14 @@ export function updateAndDrawEnemies(
   onPlayerDamage,
   explosionsRef,
   playerXRef,
+  damageCooldownRef,
+  dt = 1,
 ) {
 
 
   // update and draw enemies
   enemiesRef.current = enemiesRef.current.filter((enemy) => {
-    enemy.y += enemy.speed;
+    enemy.y += enemy.speed * dt;
 
     let hit = false;
     bulletsRef.current = bulletsRef.current.filter((bullet) => {
@@ -69,11 +71,15 @@ export function updateAndDrawEnemies(
       });
       
  
-      soundManager.playPlayerHit();
-      onPlayerDamage?.();
+      const now = performance.now();
+      if (now - (damageCooldownRef.current || 0) > 250) {
+        damageCooldownRef.current = now;
+        soundManager.playPlayerHit();
+        onPlayerDamage?.();
 
-      scoreRef.current = Math.max(0, scoreRef.current - 5);
-      onScoreChange(scoreRef.current);
+        scoreRef.current = Math.max(0, scoreRef.current - 5);
+        onScoreChange(scoreRef.current);
+      }
       
       return false; 
     }
@@ -134,13 +140,14 @@ export function updateAndDrawExplosions(ctx, explosionsRef) {
   });
 }
 
-export function spawnEnemyIfNeeded(enemiesRef, lastEnemySpawnRef) {
+export function spawnEnemyIfNeeded(enemiesRef, lastEnemySpawnRef, dt = 1) {
   const now = Date.now();
-  if (now - lastEnemySpawnRef.current > GAME_CONFIG.ENEMY_SPAWN_INTERVAL_MS) {
+  const spawnInterval = GAME_CONFIG.ENEMY_SPAWN_INTERVAL_MS / dt;
+  if (now - lastEnemySpawnRef.current > spawnInterval) {
     enemiesRef.current.push({
       x: Math.random() * (GAME_CONFIG.CANVAS_WIDTH - 40),
       y: 0,
-      speed: 2 + Math.random() * 2,
+      speed: (2 + Math.random() * 2) * dt,
     });
     lastEnemySpawnRef.current = now;
   }
