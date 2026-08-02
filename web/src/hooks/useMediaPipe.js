@@ -6,9 +6,9 @@ export function useMediaPipe() {
     const [isRunning, setIsRunning] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-
     const videoRef = useRef(null)
     const landmarkerRef = useRef(null);
+    const streamRef = useRef(null);
 
     useEffect(()=> {
 
@@ -41,39 +41,37 @@ export function useMediaPipe() {
         init()
     }, [])
 
+    useEffect(() => {
+        if (!isRunning || !videoRef.current || !streamRef.current) return;
+
+        const video = videoRef.current;
+        video.srcObject = streamRef.current;
+        video.muted = true;
+        video.playsInline = true;
+
+        video.play().catch(() => {
+            console.warn('video play() was blocked before the stream was attached');
+        });
+    }, [isRunning]);
+
     // start the cameraa
     const startCamera = async () => {
-      
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    width: 1280, 
-                    height: 720 
-                } 
-            });
-            
-         
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach((track) => track.stop());
+            }
 
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: 1280,
+                    height: 720,
+                    facingMode: 'user'
+                }
+            });
+
+            streamRef.current = stream;
             setIsRunning(true);
             setErrorMsg("");
-            
-
-            setTimeout(() => {
-                if (videoRef.current) {
-              
-                    videoRef.current.srcObject = stream;
-                    
-  
-                    videoRef.current.onloadeddata = () => {
-         
-                    };
-                    
-                    videoRef.current.play();
-                } else {
-                    console.error("video ref is still null after timeout!");
-                }
-            }, 100);
-            
         } catch (error) {
             console.error("camera access failed:", error);
             setErrorMsg("Camera access denied. Please allow camera permissions.");
@@ -81,6 +79,6 @@ export function useMediaPipe() {
         }
     }
 
-    return { videoRef, landmarkerRef, isModelReady, isRunning, errorMsg, startCamera}
+    return { videoRef, landmarkerRef, isModelReady, isRunning, errorMsg, startCamera }
   
 }
