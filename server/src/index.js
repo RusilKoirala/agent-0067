@@ -217,7 +217,7 @@ io.on('connection', (socket) => {
     if (now - lastDamageAt < 200) return;
 
     const currentScore = Number(await redis.hGet(key, 'score') || 0);
-    const nextScore = Math.max(0, currentScore - 5);
+    const nextScore = Math.max(0, currentScore - 15);
 
     await redis.multi()
       .hSet(key, 'lastDamageAt', String(now))

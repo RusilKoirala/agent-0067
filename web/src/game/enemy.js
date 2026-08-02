@@ -77,7 +77,7 @@ export function updateAndDrawEnemies(
         soundManager.playPlayerHit();
         onPlayerDamage?.();
 
-        scoreRef.current = Math.max(0, scoreRef.current - 5);
+        scoreRef.current = Math.max(0, scoreRef.current - 15);
         onScoreChange(scoreRef.current);
       }
 
