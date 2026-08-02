@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { GAME_CONFIG } from '../constants/gameConfig';
 import { drawPlayer } from '../game/player';
-import { updateAndDrawEnemies, spawnEnemyIfNeeded } from '../game/enemy';
+import { updateAndDrawEnemies, updateAndDrawExplosions, spawnEnemyIfNeeded } from '../game/enemy';
 import { updateAndDrawBullets, createBullet } from '../game/bullet';
+import { soundManager } from '../utils/sound';
 
 export default function GameCanvas({
   gameStarted,
@@ -20,9 +21,15 @@ export default function GameCanvas({
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
   const enemiesRef = useRef([]);
+  const explosionsRef = useRef([]);
   const scoreRef = useRef(0);
   const lastEnemySpawnRef = useRef(0);
   const gameStartTimeRef = useRef(null);
+
+ // sound managar gets  LOADDED
+  useEffect(() => {
+    soundManager.loadSounds();
+  }, []);
 
   useEffect(() => {
     triggerShootRef.current = () => {
@@ -39,7 +46,11 @@ export default function GameCanvas({
     scoreRef.current = 0;
     bulletsRef.current = [];
     enemiesRef.current = [];
+    explosionsRef.current = [];
     lastEnemySpawnRef.current = Date.now();
+
+   // background cool musicc
+    soundManager.playBackgroundMusic();
 
     const loop = () => {
       const canvas = canvasRef.current;
@@ -54,6 +65,7 @@ export default function GameCanvas({
       if (remaining <= 0) {
         setGameOver(true);
         setGameStarted(false);
+        soundManager.stopBackgroundMusic(); 
         cancelAnimationFrame(gameLoopRef.current);
         return;
       }
@@ -73,7 +85,8 @@ export default function GameCanvas({
       // update the game entities
       updateAndDrawBullets(ctx, bulletsRef);
       spawnEnemyIfNeeded(enemiesRef, lastEnemySpawnRef);
-      updateAndDrawEnemies(ctx, enemiesRef, bulletsRef, scoreRef, setScore, onEnemyHit);
+      updateAndDrawEnemies(ctx, enemiesRef, bulletsRef, scoreRef, setScore, onEnemyHit, explosionsRef, playerXRef);
+      updateAndDrawExplosions(ctx, explosionsRef);
       drawPlayer(ctx, playerXRef.current, GAME_CONFIG.CANVAS_HEIGHT);
 
       gameLoopRef.current = requestAnimationFrame(loop);
@@ -83,6 +96,7 @@ export default function GameCanvas({
 
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
+      soundManager.stopBackgroundMusic(); 
     };
   }, [gameStarted, onEnemyHit, setGameOver, setGameStarted, setScore, setTimeLeft, playerXRef, bulletsRef]);
 
