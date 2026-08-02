@@ -15,24 +15,23 @@ export function parsePoseControls(landmarks, refs) {
     const leftHip = landmarks[23];
     const rightHip = landmarks[24];
 
-   // just finding data
+    // just finding data
     if (headCenterXRef.current === null) {
         headCenterXRef.current = nose.x;
     }
 
-    /// find the deltaaa what changed 
+    // movement should feel symmetric on both sides instead of being "step-based"
+    // and more sensitive when turning right.
     const headTilt = nose.x - headCenterXRef.current;
-    
-    /*
-        head left goes left
-        head right goes right
-    */
-    if (headTilt < -GAME_CONFIG.TILT_THRESHOLD) {
-      
-        playerXRef.current = Math.min(GAME_CONFIG.CANVAS_WIDTH - 20, playerXRef.current + GAME_CONFIG.PLAYER_MOVE_STEP);
-    } else if (headTilt > GAME_CONFIG.TILT_THRESHOLD) {
+    const deadZone = GAME_CONFIG.TILT_THRESHOLD;
 
-        playerXRef.current = Math.max(20, playerXRef.current - GAME_CONFIG.PLAYER_MOVE_STEP);
+    if (Math.abs(headTilt) > deadZone) {
+        const movementScale = 180;
+        const movement = headTilt * movementScale;
+        playerXRef.current = Math.min(
+            GAME_CONFIG.CANVAS_WIDTH - 20,
+            Math.max(20, playerXRef.current + movement)
+        );
     }
 
     // SIX-SEVEN for pew pew
