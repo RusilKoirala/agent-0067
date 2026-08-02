@@ -15,23 +15,18 @@ export function parsePoseControls(landmarks, refs) {
     const leftHip = landmarks[23];
     const rightHip = landmarks[24];
 
-    // just finding data
+    // keep a calibrated center so both left and right turns are compared against the same baseline
     if (headCenterXRef.current === null) {
         headCenterXRef.current = nose.x;
     }
 
-    // movement should feel symmetric on both sides instead of being "step-based"
-    // and more sensitive when turning right.
+    // move based on the nose offset from its resting center position
     const headTilt = nose.x - headCenterXRef.current;
-    const deadZone = GAME_CONFIG.TILT_THRESHOLD;
 
-    if (Math.abs(headTilt) > deadZone) {
-        const movementScale = 180;
-        const movement = headTilt * movementScale;
-        playerXRef.current = Math.min(
-            GAME_CONFIG.CANVAS_WIDTH - 20,
-            Math.max(20, playerXRef.current + movement)
-        );
+    if (headTilt < -GAME_CONFIG.TILT_THRESHOLD) {
+        playerXRef.current = Math.min(GAME_CONFIG.CANVAS_WIDTH - 20, playerXRef.current + GAME_CONFIG.PLAYER_MOVE_STEP);
+    } else if (headTilt > GAME_CONFIG.TILT_THRESHOLD) {
+        playerXRef.current = Math.max(20, playerXRef.current - GAME_CONFIG.PLAYER_MOVE_STEP);
     }
 
     // SIX-SEVEN for pew pew
