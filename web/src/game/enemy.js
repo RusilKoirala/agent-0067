@@ -12,13 +12,13 @@ export function updateAndDrawEnemies(
   explosionsRef,
   playerXRef,
   damageCooldownRef,
-  dt = 1,
+  dt = 1 / 60,
 ) {
-
+  const frameScale = dt * 60;
 
   // update and draw enemies
   enemiesRef.current = enemiesRef.current.filter((enemy) => {
-    enemy.y += enemy.speed * dt;
+    enemy.y += enemy.speed * frameScale;
 
     let hit = false;
     bulletsRef.current = bulletsRef.current.filter((bullet) => {
@@ -136,18 +136,17 @@ export function updateAndDrawExplosions(ctx, explosionsRef) {
     }
 
     explosion.frame++;
-    return true;
+    return true; 
   });
 }
 
-export function spawnEnemyIfNeeded(enemiesRef, lastEnemySpawnRef, dt = 1) {
+export function spawnEnemyIfNeeded(enemiesRef, lastEnemySpawnRef, dt = 1 / 60) {
   const now = Date.now();
-  const spawnInterval = GAME_CONFIG.ENEMY_SPAWN_INTERVAL_MS / dt;
-  if (now - lastEnemySpawnRef.current > spawnInterval) {
+  if (now - lastEnemySpawnRef.current > GAME_CONFIG.ENEMY_SPAWN_INTERVAL_MS) {
     enemiesRef.current.push({
       x: Math.random() * (GAME_CONFIG.CANVAS_WIDTH - 40),
       y: 0,
-      speed: (2 + Math.random() * 2) * dt,
+      speed: 2 + Math.random() * 2,
     });
     lastEnemySpawnRef.current = now;
   }

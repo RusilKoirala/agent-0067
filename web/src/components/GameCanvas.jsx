@@ -26,7 +26,7 @@ export default function GameCanvas({
   const scoreRef = useRef(0);
   const lastEnemySpawnRef = useRef(0);
   const gameStartTimeRef = useRef(null);
-  const lastFrameTimeRef = useRef(0);
+  const lastFrameTimeRef = useRef(null);
   const damageCooldownRef = useRef(0);
 
  // sound managar gets  LOADDED
@@ -51,19 +51,21 @@ export default function GameCanvas({
     enemiesRef.current = [];
     explosionsRef.current = [];
     lastEnemySpawnRef.current = Date.now();
+    lastFrameTimeRef.current = null;
+    damageCooldownRef.current = 0;
 
    // background cool musicc
     soundManager.playBackgroundMusic();
 
-    const loop = () => {
+    const loop = (timestamp) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
 
-      const now = performance.now();
-      const deltaMs = lastFrameTimeRef.current ? Math.min(32, now - lastFrameTimeRef.current) : 16.67;
-      lastFrameTimeRef.current = now;
-      const dt = deltaMs / 16.67;
+      // calculate delta time (seconds) capped at 100ms to avoid spiral of death
+      if (lastFrameTimeRef.current === null) lastFrameTimeRef.current = timestamp;
+      const dt = Math.min((timestamp - lastFrameTimeRef.current) / 1000, 0.1);
+      lastFrameTimeRef.current = timestamp;
 
       // update the timer
       const elapsed = (Date.now() - gameStartTimeRef.current) / 1000;
@@ -90,7 +92,7 @@ export default function GameCanvas({
         ctx.fillRect(x, y, 2, 2);
       }
 
-      // update the game entities with time-based movement so 60/120Hz screens behave the same
+      // update the game entities with delta time
       updateAndDrawBullets(ctx, bulletsRef, dt);
       spawnEnemyIfNeeded(enemiesRef, lastEnemySpawnRef, dt);
       updateAndDrawEnemies(ctx, enemiesRef, bulletsRef, scoreRef, setScore, onEnemyHit, onPlayerDamage, explosionsRef, playerXRef, damageCooldownRef, dt);

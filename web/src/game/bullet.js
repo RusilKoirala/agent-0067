@@ -4,9 +4,11 @@ export function createBullet(x, canvasHeight) {
   return { x, y: canvasHeight - 80 };
 }
 
-export function updateAndDrawBullets(ctx, bulletsRef, dt = 1) {
+export function updateAndDrawBullets(ctx, bulletsRef, dt = 1 / 60) {
+  const frameScale = dt * 60;
+
   bulletsRef.current = bulletsRef.current.filter((bullet) => {
-    bullet.y -= GAME_CONFIG.BULLET_SPEED * dt;
+    bullet.y -= GAME_CONFIG.BULLET_SPEED * frameScale;
 
     // draw the laser beam
     ctx.fillStyle = '#ffff00';
